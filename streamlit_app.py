@@ -282,41 +282,51 @@ kpi_cols = st.columns(4, gap="medium")
 
 with kpi_cols[0]:
     oee_global = ultimo_por_bmm["oee"].mean()
-    delta_oee = oee_global - OEE_META
-    subtitle_global = (
-        f"Acumulado mes: {acumulado_mes_global:.1f}%"
-        if acumulado_mes_global is not None
-        else "Acumulado mes: Sin datos"
-    )
+    fecha_global = formato_fecha_larga(ultimo_por_bmm["fecha"].max())
+    if acumulado_mes_global is not None:
+        delta_mes_global = acumulado_mes_global - OEE_META
+        subtitle_global = f"Acumulado mes: {acumulado_mes_global:.1f}%"
+        delta_text_global = f"({delta_mes_global:+.1f}%)"
+        delta_color_global = COLOR_CUMPLE if delta_mes_global >= 0 else COLOR_NO_CUMPLE
+    else:
+        subtitle_global = "Acumulado mes: Sin datos"
+        delta_text_global = ""
+        delta_color_global = COLOR_MUTED
     kpi_card(
         "kpi_global",
-        "OEE Global — Hoy",
+        f"OEE Global — {fecha_global}",
         f"{oee_global:.1f}%",
         COLOR_CUMPLE if oee_global >= OEE_META else COLOR_NO_CUMPLE,
         subtitle_global,
-        f"({delta_oee:+.1f}%)",
-        COLOR_CUMPLE if delta_oee >= 0 else COLOR_NO_CUMPLE,
+        delta_text_global,
+        delta_color_global,
     )
 
 for col, bmm_id in zip(kpi_cols[1:], LIST_BMM):
     with col:
         if bmm_id not in ultimo_por_bmm.index:
-            kpi_card(f"kpi_{bmm_id}", f"BMM {bmm_id} — Hoy", "Sin datos", COLOR_MUTED, "", "", COLOR_MUTED)
+            kpi_card(f"kpi_{bmm_id}", f"BMM {bmm_id}", "Sin datos", COLOR_MUTED, "", "", COLOR_MUTED)
             continue
         oee_hoy = ultimo_por_bmm.loc[bmm_id, "oee"]
-        delta_hoy = oee_hoy - OEE_META
+        fecha_bmm = formato_fecha_larga(ultimo_por_bmm.loc[bmm_id, "fecha"])
         acumulado_mes = acumulado_mes_por_bmm.get(bmm_id)
-        subtitle = (
-            f"Acumulado mes: {acumulado_mes:.1f}%" if acumulado_mes is not None else "Acumulado mes: Sin datos"
-        )
+        if acumulado_mes is not None:
+            delta_mes = acumulado_mes - OEE_META
+            subtitle = f"Acumulado mes: {acumulado_mes:.1f}%"
+            delta_text = f"({delta_mes:+.1f}%)"
+            delta_color = COLOR_CUMPLE if delta_mes >= 0 else COLOR_NO_CUMPLE
+        else:
+            subtitle = "Acumulado mes: Sin datos"
+            delta_text = ""
+            delta_color = COLOR_MUTED
         kpi_card(
             f"kpi_{bmm_id}",
-            f"BMM {bmm_id} — Hoy",
+            f"BMM {bmm_id} — {fecha_bmm}",
             f"{oee_hoy:.1f}%",
             COLOR_CUMPLE if oee_hoy >= OEE_META else COLOR_NO_CUMPLE,
             subtitle,
-            f"({delta_hoy:+.1f}%)",
-            COLOR_CUMPLE if delta_hoy >= 0 else COLOR_NO_CUMPLE,
+            delta_text,
+            delta_color,
         )
 
 st.markdown('<div style="height:1.5rem;"></div>', unsafe_allow_html=True)
